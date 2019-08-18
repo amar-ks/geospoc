@@ -1,0 +1,251 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{{page_header}}{% endblock %}</title>
+    
+	<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet" id="bootstrap-css">
+	<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+	<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+	<!------ Include the above in your HEAD tag ---------->
+
+</head>
+<body>
+
+	{% block content %}
+	<form id="frmCMS" name="frmCMS" class="form-horizontal" action='' method="POST" enctype="multipart/form-data">
+		{% csrf_token %}
+		<fieldset>
+		<div class="control-group" id="legend">
+		  <legend >Form</legend>
+		</div>
+		<div class="control-group" id="alert_div">
+			<div class="col-md-12">
+				<div class="alert alert-danger" role="alert" id="billError">
+				  This is a danger alert—check it out!
+				</div>
+			</div>
+		</div>
+		<div class="control-group">
+		  <!-- Name -->
+		  <label class="control-label"  for="username">Name</label>
+		  <div class="controls">
+		    <input type="text" id="name" name="name" placeholder="" class="input-xlarge">
+		  </div>
+		</div>
+
+		<div class="control-group">
+		  <!-- E-mail -->
+		  <label class="control-label" for="email">E-mail</label>
+		  <div class="controls">
+		    <input type="text" id="email" name="email" placeholder="" class="input-xlarge" onkeyup="validate_email()">
+		    <p class="help-block"></p>
+		  </div>
+		</div>
+
+		<div class="control-group">
+		<!-- Web Address -->
+		  <label class="control-label"  for="web_address">Web Address</label>
+		  <div class="controls">
+		    <input type="text" id="web_address" name="web_address" placeholder="" class="input-xlarge">
+		  </div>
+		</div>
+
+		<div class="control-group">
+		  <!-- Cover Letter -->
+		  <label class="control-label"  for="cover_letter">Cover Letter</label>
+		  <div class="controls">
+		    <textarea id="cover_letter" name="cover_letter" placeholder="" class="input-xlarge"></textarea>
+		  </div>
+		</div>
+
+		<div class="control-group">
+		  <!-- Attachment -->
+		  <label class="control-label"  for="attachment">Attachment</label>
+		  <div class="controls">
+		    <input type="file" id="attachment" name="attachment" placeholder="" class="input-xlarge">
+		  </div>
+		</div>
+
+		<div class="control-group">
+			<label class="control-label"  for="working">Do you like working?</label>
+			<div class="controls">
+				<span class="form-check-label"> Yes </span>
+				<input class="form-check-input" type="radio" id="working" name="working" value="1">
+				
+				<span class="form-check-label"> No</span>
+				<input class="form-check-input" type="radio" id="working" name="working" value="0">
+				
+			</div>
+		</div>
+
+		<div class="controls">
+			<script src='https://www.google.com/recaptcha/api.js'></script>
+			<div class="g-recaptcha" data-sitekey="6LdTAbMUAAAAAOXL14qgK_1aBRobwBT5LpzM8_uK" data-callback="enableBtn"></div>
+		</div>
+
+
+		<div class="control-group">
+		  <!-- Button -->
+		  <div class="controls">
+		    <button type="submit" id="btnSubmit" class="btn btn-success">Register</button>
+		  </div>
+		</div>
+		</fieldset>
+		<input type="hidden" id="email_valid" value="no" />
+		<input type="hidden" name="message" id="message" value="{{message}}">
+	</form>
+	{% endblock %}
+
+</body>
+</html>
+
+<style type="text/css">
+.error{ font-weight: normal; color:#ef5350 !important;}
+</style>
+
+<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.15.0/jquery.validate.min.js"></script>
+<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.15.0/additional-methods.min.js"></script>
+
+<script type="text/javascript">
+
+	function validate_email()
+	{
+	    $("#loginError").html('');
+	    $("#alert_div").hide();
+
+	    var email = $("#email").val();
+	    $("#loaderdiv").show();
+	    $("#email_valid").val('no');
+
+	    $.ajax({
+	        type:"POST",
+	        url:"/validate_email/",
+	        data:{email:email, csrfmiddlewaretoken:'{{ csrf_token }}'},
+	        success:function(response){
+	            if(response.message==2){
+	                $("#email_valid").val('yes');
+	            }
+	            if(response.message==1){
+	                                          
+	                //$("#billError").removeClass("alert-danger");
+	                //$("#billError").addClass("alert-success");
+	                $("#billError").html("Email id already exists");
+	                $("#alert_div").show();
+	                
+	            }                    
+	            $("#loaderdiv").hide();
+	        },
+	        error:function(xhr){
+	            //$("#billError").html("Database error");
+	            //$("#alert_div").show();
+	            $("#loaderdiv").hide();
+	        }
+	    })
+	}
+//----------------------------//
+function error_css(){
+    $("#billError").addClass("alert-danger");
+    $("#billError").removeClass("alert-success");
+    $("#billError").html("");
+    $("#alert_div").hide();
+}
+//----------------------------//
+function success_css(){
+	$("#billError").removeClass("alert-danger");
+    $("#billError").addClass("alert-success");
+    $("#billError").html("");
+    $("#alert_div").hide();
+}
+function alrtclse()
+{
+	$("#billError").html("");
+    $("#alert_div").hide();
+}
+//----------------------------//
+
+$(document).ready(function(e){
+	
+	//----------------------------//
+	setTimeout(alrtclse, 5000);
+	//----------------------------//
+	var message = $("#message").val();
+	if(message == 0){
+		$("#billError").html("");
+    	$("#alert_div").hide();
+	}
+	if(message == 1){
+		success_css();
+		$("#billError").html("Form successfully submit");
+    	$("#alert_div").show();
+	}
+	if(message == 2){
+		success_css();
+		$("#billError").html("Email id already exists.");
+    	$("#alert_div").show();
+	}
+	if(message == 3){
+		success_css();
+		$("#billError").html("All fields are required.");
+    	$("#alert_div").show();
+	}
+	if(message == 4){
+		success_css();
+		$("#billError").html("Doc file must be doc, docx, pdf");
+    	$("#alert_div").show();
+	}
+	//----------------------------//
+
+	// $("#btnSubmit").click(function(e){
+        
+        // $("#frmCMS").submit();
+    // });
+
+ 	$('form').on('submit', function(e) {
+	  if(grecaptcha.getResponse() == "") {
+	    e.preventDefault();
+	    // alert("Please check the recaptcha!");
+	  } 
+	});
+
+    //----------------------------//
+    $("#frmCMS").validate({
+        rules: {
+            name:{
+               required: true               
+            }, 
+            email:{
+               required: true,
+               email: true              
+            },
+            web_address:{
+            	required: true,
+            	url: true
+            },
+            cover_letter:{
+            	required: true
+            },
+            attachment:{
+            	required: true
+            },
+            working:{
+            	required: true
+            },
+        },
+
+        messages: {
+	      name: "Please enter name",
+	      email: "Please enter a valid email address",
+	      web_address: "Please enter web address",
+	      cover_letter: "Please enter cover letter",
+	      attachment: "Please select file type .doc, .docx, .pdf",
+
+	    },
+    });
+    //----------------------------//
+});
+
+
+
+</script>
